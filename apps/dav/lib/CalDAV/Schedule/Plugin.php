@@ -189,19 +189,27 @@ class Plugin extends \Sabre\CalDAV\Schedule\Plugin {
 		 * In order for scheduling to work, $addresses must contain the email address of the event organizer.
 		 *
 		 * In Sabre\VObject\ITip\Broker.parseEvent is a conditional whether the
-		 * event organizer is included in $addresses respectively $userHref[1].
+		 * event organizer is included in $addresses respectively $userHref [1].
 		 *
 		 * Yes, treat the iTip message as an update from the event organizer
-		 * and deliver it to the other attendees[2].
+		 * and deliver it to the other attendees [2].
 		 *
 		 * No, treat the iTip message as an update from an attendee to the event organizer,
-		 * usually a reply to an event invitation[3].
+		 * usually a reply to an event invitation [3].
+		 *
+		 * The annotated return type for Sabre\CalDAV\Calendar.getOwner is string|null [4],
+		 * but getOwner should not return null in our world.
 		 *
 		 * [1]: https://github.com/sabre-io/vobject/blob/ac56915f9b88a99118c0ee7f25d4338798514251/lib/ITip/Broker.php#L249-L260
 		 * [2]: https://github.com/sabre-io/vobject/blob/ac56915f9b88a99118c0ee7f25d4338798514251/lib/ITip/Broker.php#L437-L445
 		 * [3]: https://github.com/sabre-io/vobject/blob/ac56915f9b88a99118c0ee7f25d4338798514251/lib/ITip/Broker.php#L607-L616
+		 * [4]: https://github.com/sabre-io/dav/blob/85b33f7c4b597bdb2a90e6886a48c5723e767062/lib/CalDAV/Calendar.php#L229-L236
 		 */
-		$addresses = $this->getAddressesForPrincipal($principal);
+		if ($principal === null) {
+			$addresses = [];
+		} else {
+			$addresses = $this->getAddressesForPrincipal($principal);
+		}
 
 		/** @var VCalendar $oldObj */
 		if (!$isNew) {
