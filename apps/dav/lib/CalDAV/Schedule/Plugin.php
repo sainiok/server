@@ -148,9 +148,6 @@ class Plugin extends \Sabre\CalDAV\Schedule\Plugin {
 	}
 
 	/**
-	 * @param RequestInterface $request
-	 * @param ResponseInterface $response
-	 * @param VCalendar $vCal
 	 * @param mixed $calendarPath
 	 * @param mixed $modified
 	 * @param mixed $isNew
@@ -161,8 +158,6 @@ class Plugin extends \Sabre\CalDAV\Schedule\Plugin {
 			$this->pathOfCalendarObjectChange = $request->getPath();
 		}
 
-		//parent::calendarObjectChange($request, $response, $vCal, $calendarPath, $modified, $isNew);
-
 		if (!$this->scheduleReply($this->server->httpRequest)) {
 			return;
 		}
@@ -170,16 +165,43 @@ class Plugin extends \Sabre\CalDAV\Schedule\Plugin {
 		/** @var Calendar $calendarNode */
 		$calendarNode = $this->server->tree->getNodeForPath($calendarPath);
 
-		// Original code in parent class:
-		//
-		// $addresses = $this->getAddressesForPrincipal(
-		//  	$calendarNode->getOwner()
-		// );
+		/** @var bool $isSharedCalendar is the calendar shared? */
+		$isSharedCalendar = str_contains($calendarPath, '_shared_by_');
 
-		// Allow also writable shared calendars:
-		$addresses = $this->getAddressesForPrincipal(
-			$calendarNode->getPrincipalURI()
-		);
+		/**
+		 * Calendar "Alice & Bob" shared from Alice (owner) to Bob (can edit)
+		 *
+		 * Alice adds an event with Jane as attendee
+		 * - $isSharedCalendar = false, because Alice is the owner
+		 * - $principal = principals/users/alice
+		 *
+		 * Bob adds an event with John as attendee
+		 * - $isSharedCalendar = true, because Alice is the owner
+		 * - $principal = principals/users/bob
+		 */
+		if ($isSharedCalendar) {
+			$principal = $calendarNode->getPrincipalURI();
+		} else {
+			$principal = $calendarNode->getOwner();
+		}
+
+		/**
+		 * In order for scheduling to work, $addresses must contain the email address of the event organizer.
+		 *
+		 * In Sabre\VObject\ITip\Broker.parseEvent is a conditional whether the
+		 * event organizer is included in $addresses respectively $userHref[1].
+		 *
+		 * Yes, treat the iTip message as an update from the event organizer
+		 * and deliver it to the other attendees[2].
+		 *
+		 * No, treat the iTip message as an update from an attendee to the event organizer,
+		 * usually a reply to an event invitation[3].
+		 *
+		 * [1]: https://github.com/sabre-io/vobject/blob/ac56915f9b88a99118c0ee7f25d4338798514251/lib/ITip/Broker.php#L249-L260
+		 * [2]: https://github.com/sabre-io/vobject/blob/ac56915f9b88a99118c0ee7f25d4338798514251/lib/ITip/Broker.php#L437-L445
+		 * [3]: https://github.com/sabre-io/vobject/blob/ac56915f9b88a99118c0ee7f25d4338798514251/lib/ITip/Broker.php#L607-L616
+		 */
+		$addresses = $this->getAddressesForPrincipal($principal);
 
 		/** @var VCalendar $oldObj */
 		if (!$isNew) {
