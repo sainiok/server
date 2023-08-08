@@ -493,7 +493,7 @@ END:VCALENDAR
 		/** @var Message[] $iTipMessages */
 		$iTipMessages = [];
 
-		$this->server->expects($this->exactly(3))
+		$this->server->expects($this->exactly(2))
 			->method('emit')
 			->willReturnCallback(function (string $eventName, array $arguments = [], callable $continueCallBack = null) use (&$iTipMessages) {
 				$this->assertEquals('schedule', $eventName);
