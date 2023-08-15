@@ -37,9 +37,9 @@ use OCP\Files\IRootFolder;
 use OCP\Files\Mount\IMountPoint;
 use OCP\Files\Node;
 use OCP\Files\Storage\IStorage;
-use OCP\ILogger;
 use OCP\IUserManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
 
 class Storage extends Wrapper {
 	/** @var IMountPoint */
@@ -48,7 +48,7 @@ class Storage extends Wrapper {
 	/** @var  IUserManager */
 	private $userManager;
 
-	/** @var ILogger */
+	/** @var LoggerInterface */
 	private $logger;
 
 	/** @var EventDispatcherInterface */
@@ -68,7 +68,7 @@ class Storage extends Wrapper {
 	 * @param array $parameters
 	 * @param ITrashManager $trashManager
 	 * @param IUserManager|null $userManager
-	 * @param ILogger|null $logger
+	 * @param LoggerInterface|null $logger
 	 * @param EventDispatcherInterface|null $eventDispatcher
 	 * @param IRootFolder|null $rootFolder
 	 */
@@ -76,7 +76,7 @@ class Storage extends Wrapper {
 		$parameters,
 		ITrashManager $trashManager = null,
 		IUserManager $userManager = null,
-		ILogger $logger = null,
+		LoggerInterface $logger = null,
 		EventDispatcherInterface $eventDispatcher = null,
 		IRootFolder $rootFolder = null
 	) {
@@ -208,19 +208,27 @@ class Storage extends Wrapper {
 	}
 
 	/**
-	 * Setup the storate wrapper callback
+	 * Setup the storage wrapper callback
 	 */
 	public static function setupStorage() {
-		\OC\Files\Filesystem::addStorageWrapper('oc_trashbin', function ($mountPoint, $storage) {
-			return new \OCA\Files_Trashbin\Storage(
-				['storage' => $storage, 'mountPoint' => $mountPoint],
-				\OC::$server->query(ITrashManager::class),
-				\OC::$server->getUserManager(),
-				\OC::$server->getLogger(),
-				\OC::$server->getEventDispatcher(),
-				\OC::$server->getLazyRootFolder()
-			);
-		}, 1);
+		$trashManager = \OC::$server->get(ITrashManager::class);
+		$userManager = \OC::$server->get(IUserManager::class);
+		$logger = \OC::$server->get(LoggerInterface::class);
+		$eventDispatcher = \OC::$server->get(EventDispatcherInterface::class);
+		$rootFolder = \OC::$server->get(IRootFolder::class);
+		Filesystem::addStorageWrapper(
+			'oc_trashbin',
+			function ($mountPoint, $storage) use ($trashManager, $userManager, $logger, $eventDispatcher, $rootFolder) {
+				return new Storage(
+					['storage' => $storage, 'mountPoint' => $mountPoint],
+					$trashManager,
+					$userManager,
+					$logger,
+					$eventDispatcher,
+					$rootFolder,
+				);
+			},
+		1);
 	}
 
 	public function getMountPoint() {
