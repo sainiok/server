@@ -33,10 +33,8 @@ use OC\Files\Cache\Cache;
 use OC\Files\Cache\QuerySearchHelper;
 use OCP\Files\Cache\ICache;
 use OCP\Files\Cache\ICacheEntry;
-use OCP\Files\IMimeTypeLoader;
 use OCP\Files\Search\ISearchOperator;
 use OCP\Files\Search\ISearchQuery;
-use OCP\IDBConnection;
 
 class CacheWrapper extends Cache {
 	/**
