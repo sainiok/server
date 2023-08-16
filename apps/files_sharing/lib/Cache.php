@@ -28,12 +28,14 @@
  */
 namespace OCA\Files_Sharing;
 
+use OC\Files\Cache\CacheDependencies;
 use OC\Files\Cache\FailedCache;
 use OC\Files\Cache\Wrapper\CacheJail;
 use OC\Files\Search\SearchBinaryOperator;
 use OC\Files\Search\SearchComparison;
 use OC\Files\Storage\Wrapper\Jail;
 use OC\User\DisplayNameCache;
+use OCP\Files\Cache\ICache;
 use OCP\Files\Cache\ICacheEntry;
 use OCP\Files\Search\ISearchBinaryOperator;
 use OCP\Files\Search\ISearchComparison;
@@ -59,15 +61,20 @@ class Cache extends CacheJail {
 	/**
 	 * @param SharedStorage $storage
 	 */
-	public function __construct($storage, ICacheEntry $sourceRootInfo, DisplayNameCache $displayNameCache) {
+	public function __construct(
+		$storage,
+		ICacheEntry $sourceRootInfo,
+		CacheDependencies $dependencies,
+	) {
 		$this->storage = $storage;
 		$this->sourceRootInfo = $sourceRootInfo;
 		$this->numericId = $sourceRootInfo->getStorageId();
-		$this->displayNameCache = $displayNameCache;
+		$this->displayNameCache = $dependencies->getDisplayNameCache();
 
 		parent::__construct(
 			null,
-			''
+			'',
+			$dependencies,
 		);
 	}
 
@@ -92,7 +99,7 @@ class Cache extends CacheJail {
 		return $this->sourceRootInfo->getPath();
 	}
 
-	public function getCache() {
+	public function getCache(): ICache {
 		if (is_null($this->cache)) {
 			$sourceStorage = $this->storage->getSourceStorage();
 			if ($sourceStorage) {

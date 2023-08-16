@@ -3,6 +3,7 @@
 namespace OC\Files\Cache;
 
 use OC\SystemConfig;
+use OC\User\DisplayNameCache;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeLoader;
 use OCP\IDBConnection;
@@ -16,6 +17,7 @@ class CacheDependencies {
 		private QuerySearchHelper $querySearchHelper,
 		private SystemConfig $systemConfig,
 		private LoggerInterface $logger,
+		private DisplayNameCache $displayNameCache,
 	) {
 	}
 
@@ -41,5 +43,9 @@ class CacheDependencies {
 
 	public function getLogger(): LoggerInterface {
 		return $this->logger;
+	}
+
+	public function getDisplayNameCache(): DisplayNameCache {
+		return $this->displayNameCache;
 	}
 }
