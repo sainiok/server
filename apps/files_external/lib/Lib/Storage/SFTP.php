@@ -38,6 +38,7 @@ namespace OCA\Files_External\Lib\Storage;
 
 use Icewind\Streams\IteratorDirectory;
 use Icewind\Streams\RetryWrapper;
+use OCP\IRequest;
 use phpseclib\Net\SFTP\Stream;
 
 /**
@@ -475,5 +476,17 @@ class SFTP extends \OC\Files\Storage\Common {
 		// hostname because this might show up in logs (they are not used).
 		$url = 'sftp://' . urlencode($this->user) . '@' . $this->host . ':' . $this->port . $this->root . $path;
 		return $url;
+	}
+
+	public function hasUpdated($path, $time) {
+		$storageTime = $this->filemtime($path);
+		$updated = $storageTime > $time;
+		if ($updated) {
+			$req = \OC::$server->get(IRequest::class);
+			if ($req->getHeader('x-debug-updated')) {
+				header("x-debug-updated: '$path' updated $storageTime > $time", false);
+			}
+		}
+		return $updated;
 	}
 }
