@@ -119,6 +119,7 @@ class Application extends App implements IBootstrap {
 		$this->versionsHooks($logger);
 
 		$this->securityHooks($logger, $eventDispatcher);
+		$this->tagHooks($logger, $eventDispatcher);
 	}
 
 	private function userManagementHooks(IAuditLogger $logger,
@@ -187,6 +188,13 @@ class Application extends App implements IBootstrap {
 		$eventDispatcher->addListener(ConsoleEvent::class, function (ConsoleEvent $event) use ($logger) {
 			$appActions = new Console($logger);
 			$appActions->runCommand($event->getArguments());
+		});
+	}
+	private function tagHooks(IAuditLogger $logger,
+								  IEventDispatcher $eventDispatcher): void {
+		$eventDispatcher->addListener(\OCP\SystemTag\ManagerEvent::EVENT_CREATE, function (\OCP\SystemTag\ManagerEvent $event) use ($logger) {
+			$appActions = new Console($logger);
+			$appActions->runCommand([$event->getTag()->getName()]);
 		});
 	}
 
