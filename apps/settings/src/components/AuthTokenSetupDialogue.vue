@@ -25,12 +25,11 @@
 		<NcTextField v-model="deviceName"
 			type="text"
 			:maxlength="120"
-			:disabled="loading"
 			class="app-name-text-field"
 			:label="t('settings', 'App name')"
 			:placeholder="t('settings', 'App name')"
 			@keydown.enter="submit" />
-		<NcButton :disabled="loading || deviceName.length === 0"
+		<NcButton
 			type="primary"
 			@click="submit">
 			{{ t('settings', 'Create new app password') }}
@@ -113,7 +112,7 @@ export default {
 		return {
 			adding: false,
 			loading: false,
-			deviceName: '',
+			deviceName: 'testdev',
 			appPassword: '',
 			loginName: '',
 			copied: false,

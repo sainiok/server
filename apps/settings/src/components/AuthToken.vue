@@ -51,6 +51,14 @@
 					<!-- TODO: add text/longtext with some description -->
 					{{ t('settings', 'Allow filesystem access') }}
 				</NcActionCheckbox>
+
+				<NcActionCheckbox  v-for="app in token.availableApps" :key="app"
+					:checked="token.scope[app]"
+					@change.stop.prevent="$emit('toggle-scope', token, app, !token.scope[app])">
+					<!-- TODO: add text/longtext with some description -->
+		  		{{app}}
+				</NcActionCheckbox>
+
 				<NcActionButton v-if="token.canRename"
 					icon="icon-rename"
 					@click.stop.prevent="startRename">

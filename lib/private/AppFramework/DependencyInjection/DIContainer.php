@@ -45,6 +45,7 @@ use OC\AppFramework\Middleware\Security\SecurityMiddleware;
 use OC\AppFramework\Middleware\SessionMiddleware;
 use OC\AppFramework\ScopedPsrLogger;
 use OC\AppFramework\Utility\SimpleContainer;
+use OC\Authentication\Token\IProvider as IAuthTokenProvider;
 use OC\Core\Middleware\TwoFactorMiddleware;
 use OC\Diagnostics\EventLogger;
 use OC\Log\PsrLoggerAdapter;
@@ -303,6 +304,16 @@ class DIContainer extends SimpleContainer implements IAppContainer {
 					$c->get(IUserSession::class),
 					$c->get(IControllerMethodReflector::class),
 					$c->get(OC\Security\RateLimiting\Limiter::class)
+				)
+			);
+			$dispatcher->registerMiddleware(
+				new OC\AppFramework\Middleware\Security\TokenAllowedMiddleware(
+					$c->get(IControllerMethodReflector::class),
+					$c->get(IRequest::class),
+					$c->get(LoggerInterface::class),
+					$c->get('AppName'),
+					$c->get(ISession::class),
+					$c->get(IAuthTokenProvider::class)
 				)
 			);
 			$dispatcher->registerMiddleware(

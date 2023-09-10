@@ -25,6 +25,7 @@ declare(strict_types=1);
  */
 namespace OCA\Settings\Settings\Personal\Security;
 
+use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IUserSession;
 use function array_map;
@@ -54,16 +55,21 @@ class Authtokens implements ISettings {
 	/** @var IUserSession */
 	private $userSession;
 
+	/** @var IAppManager */
+	private $appManager;
+
 	public function __construct(IAuthTokenProvider $tokenProvider,
 								ISession $session,
 								IUserSession $userSession,
 								IInitialState $initialState,
+								IAppManager $appManager,
 								?string $UserId) {
 		$this->tokenProvider = $tokenProvider;
 		$this->session = $session;
 		$this->initialState = $initialState;
 		$this->uid = $UserId;
 		$this->userSession = $userSession;
+		$this->appManager = $appManager;
 	}
 
 	public function getForm(): TemplateResponse {
@@ -103,7 +109,9 @@ class Authtokens implements ISettings {
 		}
 
 		return array_map(function (IToken $token) use ($sessionToken) {
+			$availableApps = $this->appManager->getEnabledAppsForUser($this->userSession->getUser());
 			$data = $token->jsonSerialize();
+			$data['availableApps'] = $availableApps;
 			$data['canDelete'] = true;
 			$data['canRename'] = $token instanceof INamedToken;
 			if ($sessionToken->getId() === $token->getId()) {
