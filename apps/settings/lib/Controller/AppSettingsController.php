@@ -439,12 +439,16 @@ class AppSettingsController extends Controller {
 		try {
 			$updateRequired = false;
 
+			if (!empty($appIds) && !in_array('admin', $appIds)) {
+				$appIds[] = 'admin';
+			}
+
 			foreach ($appIds as $appId) {
 				$appId = OC_App::cleanAppId($appId);
 
 				// Check if app is already downloaded
 				/** @var Installer $installer */
-				$installer = \OC::$server->query(Installer::class);
+				$installer = \OC::$server->get(Installer::class);
 				$isDownloaded = $installer->isDownloaded($appId);
 
 				if (!$isDownloaded) {

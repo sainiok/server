@@ -99,6 +99,10 @@ class Enable extends Command implements CompletionAwareInterface {
 			return;
 		}
 
+		if (!empty($groupIds) && !in_array('admin', $groupIds)) {
+			$groupIds[] = 'admin';
+		}
+
 		try {
 			/** @var Installer $installer */
 			$installer = \OC::$server->query(Installer::class);
