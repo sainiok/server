@@ -191,6 +191,11 @@ class PublicKeyToken extends Entity implements INamedToken, IWipeableToken {
 		return $scope;
 	}
 
+	public function getScopeValue(string $scopeName): bool {
+		$scopes = $this->getScopeAsArray();
+		return $scopes[$scopeName] ?? true;
+	}
+
 	public function setScope($scope) {
 		if (is_array($scope)) {
 			parent::setScope(json_encode($scope));

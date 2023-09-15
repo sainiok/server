@@ -96,18 +96,15 @@ class TokenAllowedMiddleware extends Middleware {
 	public function afterController($controller, $methodName, Response $response) {
 
 
-		$this->logger->error('Response for ' . $this->appName . ' got token denied.');
-
+		//todo: this might prevent users from logging in. Check if the tokenprovider is PublicKey
 
 		$sessionId = $this->session->getId();
 		$sessionToken = $this->tokenProvider->getToken($sessionId);
 
-		$this->logger->error('Response for ' . $sessionToken->getName() . ' got token denied.');
-
-		if($this->appName == "files") {
+		if(!$sessionToken->getScopeValue($this->appName)) {
 			$response = new Response(Http::STATUS_FORBIDDEN);
 			$response->setHeaders(['X-RequestDeniedReason' => 'Apptoken missing permissions!']);
-			//return $response;
+			return $response;
 		}
 
 		return parent::afterController($controller, $methodName, $response);
