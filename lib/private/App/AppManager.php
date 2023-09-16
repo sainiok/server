@@ -40,6 +40,10 @@ namespace OC\App;
 
 use OC\AppConfig;
 use OC\AppFramework\Bootstrap\Coordinator;
+use OC\Authentication\Exceptions\ExpiredTokenException;
+use OC\Authentication\Exceptions\InvalidTokenException;
+use OC\Authentication\Exceptions\WipeTokenException;
+use OC\Authentication\Token\IProvider as IAuthTokenProvider;
 use OC\ServerNotAvailableException;
 use OCP\Activity\IManager as IActivityManager;
 use OCP\App\AppPathNotFoundException;
@@ -57,6 +61,7 @@ use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserSession;
+use OCP\Session\Exceptions\SessionNotAvailableException;
 use OCP\Settings\IManager as ISettingsManager;
 use Psr\Log\LoggerInterface;
 
@@ -155,10 +160,29 @@ class AppManager implements IAppManager {
 	 * @return string[]
 	 */
 	public function getEnabledAppsForUser(IUser $user) {
+
 		$apps = $this->getInstalledAppsValues();
-		$appsForUser = array_filter($apps, function ($enabled) use ($user) {
-			return $this->checkAppForUser($enabled, $user);
-		});
+		try {
+			//todo: request those container properly
+			$session = \OC::$server->getSession();
+			$tokenProvider = \OC::$server->get(IAuthTokenProvider::class);
+			$sessionId = $session->getId();
+			$sessionToken = $tokenProvider->getToken($sessionId);
+
+			$appsForUser = array_filter($apps,
+				function ($enabled, $app) use ( $user, $sessionToken) {
+					if(!$sessionToken->getScopeValue($app)) {
+						return false;
+					}
+					return $this->checkAppForUser($enabled, $user);
+			},
+			ARRAY_FILTER_USE_BOTH);
+		} catch (SessionNotAvailableException|ExpiredTokenException|WipeTokenException|InvalidTokenException $e) {
+			$appsForUser = array_filter($apps, function ($enabled) use ($user) {
+				return $this->checkAppForUser($enabled, $user);
+			});
+		}
+
 		return array_keys($appsForUser);
 	}
 
