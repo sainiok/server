@@ -110,8 +110,20 @@ class Authtokens implements ISettings {
 
 		return array_map(function (IToken $token) use ($sessionToken) {
 			$availableApps = $this->appManager->getEnabledAppsForUser($this->userSession->getUser());
+
+
+			$protectedAppTypes = [
+				'calendar',
+			];
+
+
+			$disableAbleApps = array_filter($availableApps,
+				function ($app) use ($protectedAppTypes) {
+					return !in_array($app ,$protectedAppTypes);
+				});
+
 			$data = $token->jsonSerialize();
-			$data['availableApps'] = $availableApps;
+			$data['availableApps'] = $disableAbleApps;
 			$data['canDelete'] = true;
 			$data['canRename'] = $token instanceof INamedToken;
 			if ($sessionToken->getId() === $token->getId()) {
