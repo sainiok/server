@@ -101,6 +101,15 @@ interface IToken extends JsonSerializable {
 	public function getScopeValue(string $scopeName): bool;
 
 	/**
+	 * Get the authentication scope for a subscope
+	 *
+	 * @param string $scopeName
+	 *
+	 * @return boolean
+	 */
+	public function getSubScopeValue(string $scopeName, string $subscope): bool;
+
+	/**
 	 * Set the authentication scope for this token
 	 *
 	 * @param array $scope

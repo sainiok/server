@@ -64,6 +64,7 @@ use OCA\DAV\Events\CalendarUpdatedEvent;
 use OCA\DAV\Events\SubscriptionCreatedEvent;
 use OCA\DAV\Events\SubscriptionDeletedEvent;
 use OCA\DAV\Events\SubscriptionUpdatedEvent;
+use OC\Authentication\Token\IProvider as IAuthTokenProvider;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\Calendar\Exceptions\CalendarException;
 use OCP\DB\Exception;
@@ -316,7 +317,12 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 	 * @return array
 	 */
 	public function getCalendarsForUser($principalUri) {
-		return $this->atomic(function () use ($principalUri) {
+		$session = \OC::$server->getUserSession();
+		$tokenID = $session->getSession()->get('token-id');
+		$tokenProvider = \OC::$server->get(IAuthTokenProvider::class);
+		$token = $tokenProvider->getTokenById($tokenID);
+
+		return $this->atomic(function () use ($principalUri, $l, $token) {
 			$principalUriOriginal = $principalUri;
 			$principalUri = $this->convertPrincipal($principalUri, true);
 			$fields = array_column($this->propertyMap, 0);
@@ -364,8 +370,10 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 				$calendar = $this->addOwnerPrincipalToCalendar($calendar);
 				$calendar = $this->addResourceTypeToCalendar($row, $calendar);
 
-				if (!isset($calendars[$calendar['id']])) {
-					$calendars[$calendar['id']] = $calendar;
+				if($token->getSubScopeValue("calendar", $row['id'])) {
+					if (!isset($calendars[$calendar['id']])) {
+						$calendars[$calendar['id']] = $calendar;
+					}
 				}
 			}
 			$result->closeCursor();

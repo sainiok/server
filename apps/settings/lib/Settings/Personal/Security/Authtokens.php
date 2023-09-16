@@ -111,9 +111,32 @@ class Authtokens implements ISettings {
 		return array_map(function (IToken $token) use ($sessionToken) {
 			$availableApps = $this->appManager->getEnabledAppsForUser($this->userSession->getUser());
 
+			// todo: get actual calendars
+			$availableCalendars = ["1", "2"];
 
-			$protectedAppTypes = [
-				'calendar',
+			$protectedAppTypes = ["admin_audit",
+				"cloud_federation_api",
+				"contactsinteraction",
+				"files",
+				"dav",
+				"federatedfilesharing",
+				"federation",
+				"files_reminders",
+				"files_sharing",
+				"files_trashbin",
+				"files_versions",
+				"lookup_server_connector",
+				"oauth2",
+				"provisioning_api",
+				"sharebymail",
+				"systemtags",
+				"theming",
+				"twofactor_backupcodes",
+				"updatenotification",
+				"user_status",
+				"viewer",
+				"weather_status",
+				"workflowengine"
 			];
 
 
@@ -123,6 +146,7 @@ class Authtokens implements ISettings {
 				});
 
 			$data = $token->jsonSerialize();
+			$data['availableCalendars'] = $availableCalendars;
 			$data['availableApps'] = $disableAbleApps;
 			$data['canDelete'] = true;
 			$data['canRename'] = $token instanceof INamedToken;

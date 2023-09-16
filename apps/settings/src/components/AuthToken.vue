@@ -45,48 +45,70 @@
 				:title="t('settings', 'Device settings')"
 				:aria-label="t('settings', 'Device settings')"
 				:open.sync="actionOpen">
-				<NcActionCheckbox v-if="token.type === 1"
-					:checked="token.scope.filesystem"
-					@change.stop.prevent="$emit('toggle-scope', token, 'filesystem', !token.scope.filesystem)">
-					<!-- TODO: add text/longtext with some description -->
-					{{ t('settings', 'Allow filesystem access') }}
-				</NcActionCheckbox>
+			</NcActions>
+		</td>
+		<td class="more2">
+	  	<NcButton @click="showModal" v-if="!token.current">Edit</NcButton>
+			<NcModal
+				:show.sync="modal"
+				@close="closeModal"
+				size="small"
+				:title="t('settings', 'Device settings')"
+	  		:aria-label="t('settings', 'Device settings')"
+				:outTransition="true">
+				<div class="modal__content">
+					<NcActionCheckbox v-if="token.type === 1"
+										:checked="token.scope.filesystem"
+										@change.stop.prevent="$emit('toggle-scope', token, 'filesystem', !token.scope.filesystem)">
+						<!-- TODO: add text/longtext with some description -->
+						{{ t('settings', 'Allow filesystem access') }}
+					</NcActionCheckbox>
 
-				<NcActionCheckbox  v-for="app in token.availableApps" :key="app"
-					:checked="token.scope[app]"
-					@change.stop.prevent="$emit('toggle-scope', token, app, !token.scope[app])">
-					<!-- TODO: add text/longtext with some description -->
-		  		{{app}}
-				</NcActionCheckbox>
+					<NcActionCheckbox  v-for="app in token.availableApps" :key="app"
+										 :checked="token.scope[app]"
+										 @change.stop.prevent="$emit('toggle-scope', token, app, !token.scope[app])">
+						<!-- TODO: add text/longtext with some description -->
+						{{app}}
+					</NcActionCheckbox>
 
-				<NcActionButton v-if="token.canRename"
-					icon="icon-rename"
-					@click.stop.prevent="startRename">
-					<!-- TODO: add text/longtext with some description -->
-					{{ t('settings', 'Rename') }}
-				</NcActionButton>
+					<NcActionCheckbox
+						v-if="token.scope['calendar']"
+						v-for="calendar in token.availableCalendars" :key="calendar"
+										 :checked="token.scope['calendar_SUBSCOPE_'+calendar]"
+										 @change.stop.prevent="$emit('toggle-scope', token, calendar, !token.scope['calendar_SUBSCOPE_'+calendar])">
+						<!-- TODO: add text/longtext with some description -->
+						{{calendar}}
+					</NcActionCheckbox>
 
-				<!-- revoke & wipe -->
-				<template v-if="token.canDelete">
-					<template v-if="token.type !== 2">
-						<NcActionButton icon="icon-delete"
-							@click.stop.prevent="revoke">
-							<!-- TODO: add text/longtext with some description -->
-							{{ t('settings', 'Revoke') }}
-						</NcActionButton>
-						<NcActionButton icon="icon-delete"
-							@click.stop.prevent="wipe">
-							{{ t('settings', 'Wipe device') }}
+					<NcActionButton v-if="token.canRename"
+									icon="icon-rename"
+									@click.stop.prevent="startRename">
+						<!-- TODO: add text/longtext with some description -->
+						{{ t('settings', 'Rename') }}
+					</NcActionButton>
+
+					<!-- revoke & wipe -->
+					<template v-if="token.canDelete">
+						<template v-if="token.type !== 2">
+							<NcActionButton icon="icon-delete"
+											@click.stop.prevent="revoke">
+								<!-- TODO: add text/longtext with some description -->
+								{{ t('settings', 'Revoke') }}
+							</NcActionButton>
+							<NcActionButton icon="icon-delete"
+											@click.stop.prevent="wipe">
+								{{ t('settings', 'Wipe device') }}
+							</NcActionButton>
+						</template>
+						<NcActionButton v-else-if="token.type === 2"
+										icon="icon-delete"
+										:title="t('settings', 'Revoke')"
+										@click.stop.prevent="revoke">
+							{{ t('settings', 'Revoking this token might prevent the wiping of your device if it has not started the wipe yet.') }}
 						</NcActionButton>
 					</template>
-					<NcActionButton v-else-if="token.type === 2"
-						icon="icon-delete"
-						:title="t('settings', 'Revoke')"
-						@click.stop.prevent="revoke">
-						{{ t('settings', 'Revoking this token might prevent the wiping of your device if it has not started the wipe yet.') }}
-					</NcActionButton>
-				</template>
-			</NcActions>
+				</div>
+			</NcModal>
 		</td>
 	</tr>
 </template>
@@ -96,6 +118,8 @@ import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcActionCheckbox from '@nextcloud/vue/dist/Components/NcActionCheckbox.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 
 // When using capture groups the following parts are extracted the first is used as the version number, the second as the OS
 const userAgentMap = {
@@ -165,6 +189,8 @@ export default {
 	name: 'AuthToken',
 	components: {
 		NcActions,
+		NcButton,
+		NcModal,
 		NcActionButton,
 		NcActionCheckbox,
 		NcTextField,
@@ -182,6 +208,7 @@ export default {
 			newName: '',
 			oldName: '',
 			actionOpen: false,
+			modal: false,
 		}
 	},
 	computed: {
@@ -263,6 +290,12 @@ export default {
 			this.actionOpen = false
 			this.$emit('wipe', this.token)
 		},
+		showModal() {
+			this.modal = true
+		},
+		closeModal() {
+			this.modal = false
+		},
 	},
 }
 </script>
@@ -317,4 +350,8 @@ export default {
 			}
 		}
 	}
+  .modal__content {
+		margin: 50px;
+		text-align: center;
+  }
 </style>
