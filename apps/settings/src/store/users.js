@@ -68,7 +68,7 @@ const mutations = {
 	appendUsers(state, usersObj) {
 		// convert obj to array
 		const users = state.users.concat(Object.keys(usersObj).map(userid => usersObj[userid]))
-		state.usersOffset += state.usersLimit
+		state.usersOffset += usersObj.length
 		state.users = users
 	},
 	setPasswordPolicyMinLength(state, length) {

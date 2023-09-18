@@ -473,7 +473,7 @@ export default {
 					if (usersCount > 0) {
 						$state.loaded()
 					}
-					if (usersCount < this.usersLimit) {
+					if (usersCount === 0) {
 						$state.complete()
 					}
 				})
