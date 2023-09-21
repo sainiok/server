@@ -30,14 +30,23 @@ class QueryOptimizer {
 	private $steps = [];
 
 	public function __construct(
-		PathPrefixOptimizer $pathPrefixOptimizer
+		PathPrefixOptimizer $pathPrefixOptimizer,
+		MergeDistributiveOperations $mergeDistributiveOperations,
+		FlattenSingleArgumentBinaryOperation $flattenSingleArgumentBinaryOperation,
+		OrEqualsToIn $orEqualsToIn,
+		FlattenNestedBool $flattenNestedBool,
 	) {
+		// note that the order here is relevant
 		$this->steps = [
-			$pathPrefixOptimizer
+			$pathPrefixOptimizer,
+			$mergeDistributiveOperations,
+			$flattenSingleArgumentBinaryOperation,
+			$flattenNestedBool,
+			$orEqualsToIn,
 		];
 	}
 
-	public function processOperator(ISearchOperator $operator) {
+	public function processOperator(ISearchOperator &$operator) {
 		foreach ($this->steps as $step) {
 			$step->inspectOperator($operator);
 		}
