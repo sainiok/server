@@ -50,10 +50,12 @@ use OC\Hooks\PublicEmitter;
 use OC_User;
 use OC_Util;
 use OCA\DAV\Connector\Sabre\Auth;
+use OCP\AppFramework\Db\TTransactional;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\NotPermittedException;
 use OCP\IConfig;
+use OCP\IDBConnection;
 use OCP\IRequest;
 use OCP\ISession;
 use OCP\IUser;
@@ -90,6 +92,8 @@ use Symfony\Component\EventDispatcher\GenericEvent;
  * @package OC\User
  */
 class Session implements IUserSession, Emitter {
+	use TTransactional;
+
 	/** @var Manager $manager */
 	private $manager;
 
@@ -117,6 +121,7 @@ class Session implements IUserSession, Emitter {
 	private LoggerInterface $logger;
 	/** @var IEventDispatcher */
 	private $dispatcher;
+	private IDBConnection $connection;
 
 	public function __construct(Manager $manager,
 								ISession $session,
@@ -126,7 +131,8 @@ class Session implements IUserSession, Emitter {
 								ISecureRandom $random,
 								ILockdownManager $lockdownManager,
 								LoggerInterface $logger,
-								IEventDispatcher $dispatcher
+								IEventDispatcher $dispatcher,
+								IDBConnection $connection,
 	) {
 		$this->manager = $manager;
 		$this->session = $session;
@@ -137,6 +143,7 @@ class Session implements IUserSession, Emitter {
 		$this->lockdownManager = $lockdownManager;
 		$this->logger = $logger;
 		$this->dispatcher = $dispatcher;
+		$this->connection = $connection;
 	}
 
 	/**
@@ -869,32 +876,63 @@ class Session implements IUserSession, Emitter {
 			return false;
 		}
 
-		// get stored tokens
-		$tokens = $this->config->getUserKeys($uid, 'login_token');
-		// test cookies token against stored tokens
-		if (!in_array($currentToken, $tokens, true)) {
-			$this->logger->info('Tried to log in {uid} but could not verify token', [
-				'app' => 'core',
-				'uid' => $uid,
-			]);
+		/*
+		 * Run token lookup and replacement in a transaction
+		 *
+		 * The READ COMMITTED isolation level causes the database to serialize
+		 * the DELETE query, making it possible to detect if two concurrent
+		 * processes try to replace the same login token.
+		 * Replacing more than once doesn't work because the app token behind
+		 * the session can only be replaced once.
+		 */
+		$newToken = $this->atomic(function() use ($uid, $currentToken): ?string {
+			// get stored tokens
+			$tokens = $this->config->getUserKeys($uid, 'login_token');
+			// test cookies token against stored tokens
+			if (!in_array($currentToken, $tokens, true)) {
+				$this->logger->error('Tried to log in {uid} but could not find token {token} in database', [
+					'app' => 'core',
+					'token' => $currentToken,
+					'uid' => $uid,
+					'user' => $uid,
+				]);
+				return null;
+			}
+			// replace successfully used token with a new one
+			if (!$this->config->deleteUserValue($uid, 'login_token', $currentToken)) {
+				$this->logger->error('Tried to log in {uid} but ran into concurrent session revival', [
+					'app' => 'core',
+					'token' => $currentToken,
+					'uid' => $uid,
+					'user' => $uid,
+				]);
+				return null;
+			}
+			$newToken = $this->random->generate(32);
+			$this->config->setUserValue($uid, 'login_token', $newToken, (string)$this->timeFactory->getTime());
+			return $newToken;
+		}, $this->connection);
+
+		// Token verification or replacement failed. Session can't be revived.
+		if ($newToken === null) {
 			return false;
 		}
-		// replace successfully used token with a new one
-		$this->config->deleteUserValue($uid, 'login_token', $currentToken);
-		$newToken = $this->random->generate(32);
-		$this->config->setUserValue($uid, 'login_token', $newToken, (string)$this->timeFactory->getTime());
 
 		try {
 			$sessionId = $this->session->getId();
 			$token = $this->tokenProvider->renewSessionToken($oldSessionId, $sessionId);
 		} catch (SessionNotAvailableException $ex) {
-			$this->logger->warning('Could not renew session token for {uid} because the session is unavailable', [
+			$this->logger->critical('Could not renew session token for {uid} because the session is unavailable', [
 				'app' => 'core',
 				'uid' => $uid,
+				'user' => $uid,
 			]);
 			return false;
 		} catch (InvalidTokenException $ex) {
-			$this->logger->warning('Renewing session token failed', ['app' => 'core']);
+			$this->logger->error('Renewing session token failed', [
+				'app' => 'core',
+				'user' => $uid,
+			]);
 			return false;
 		}
 
