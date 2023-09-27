@@ -19,11 +19,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+import type { ErrorHandler } from 'vue-router/types/router'
+
 import { generateUrl } from '@nextcloud/router'
 import queryString from 'query-string'
 import Router, { RawLocation, Route } from 'vue-router'
 import Vue from 'vue'
-import { ErrorHandler } from 'vue-router/types/router'
 
 Vue.use(Router)
 

@@ -24,8 +24,7 @@
 </template>
 
 <script>
-// eslint-disable-next-line import/named
-import { sanitize } from 'dompurify'
+import DOMPurify from 'dompurify'
 
 export default {
 	name: 'CustomSvgIconRender',
@@ -37,11 +36,11 @@ export default {
 	},
 	watch: {
 		svg() {
-			this.$el.innerHTML = sanitize(this.svg)
+			this.$el.innerHTML = DOMPurify.sanitize(this.svg)
 		},
 	},
 	mounted() {
-		this.$el.innerHTML = sanitize(this.svg)
+		this.$el.innerHTML = DOMPurify.sanitize(this.svg)
 	},
 }
 </script>
