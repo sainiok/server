@@ -910,6 +910,13 @@ class Session implements IUserSession, Emitter {
 			}
 			$newToken = $this->random->generate(32);
 			$this->config->setUserValue($uid, 'login_token', $newToken, (string)$this->timeFactory->getTime());
+			$this->logger->debug('Remember-me token {token} for {uid} replaced by {newToken}', [
+				'app' => 'core',
+				'token' => $currentToken,
+				'newToken' => $newToken,
+				'uid' => $uid,
+				'user' => $uid,
+			]);
 			return $newToken;
 		}, $this->connection);
 
