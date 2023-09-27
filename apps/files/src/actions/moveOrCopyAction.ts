@@ -139,7 +139,7 @@ export const handleCopyMoveNodeTo = async (node: Node, destination: Folder, meth
  * @return {Promise<boolean>} A promise that resolves to true if the action was successful
  */
 const openFilePickerForAction = async (action: MoveCopyAction, dir = '/', node: Node): Promise<boolean> => {
-	const filePicker = getFilePickerBuilder(t('files', 'Chose destination'))
+	const filePicker = getFilePickerBuilder(t('files', 'Choose destination'))
 		.allowDirectories(true)
 		.setFilter((n: Node) => {
 			// We only want to show folders that we can create nodes in
