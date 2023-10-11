@@ -40,12 +40,7 @@ use OCP\Session\Exceptions\SessionNotAvailableException;
  * @package OC\Session
  */
 class Memory extends Session {
-	protected $data;
-
-	public function __construct(string $name) {
-		//no need to use $name since all data is already scoped to this instance
-		$this->data = [];
-	}
+	protected $data = [];
 
 	/**
 	 * @param string $key

@@ -745,7 +745,7 @@ class SessionTest extends \Test\TestCase {
 				return $users[$uid];
 			});
 
-		$session = new Memory('');
+		$session = new Memory();
 		$session->set('user_id', 'foo');
 		$userSession = $this->getMockBuilder(Session::class)
 			->setConstructorArgs([$manager, $session, $this->timeFactory, $this->tokenProvider, $this->config, $this->random, $this->lockdownManager, $this->logger, $this->dispatcher])
@@ -758,7 +758,7 @@ class SessionTest extends \Test\TestCase {
 
 		$this->assertEquals($users['foo'], $userSession->getUser());
 
-		$session2 = new Memory('');
+		$session2 = new Memory();
 		$session2->set('user_id', 'bar');
 		$userSession->setSession($session2);
 		$this->assertEquals($users['bar'], $userSession->getUser());

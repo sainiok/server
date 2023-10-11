@@ -36,6 +36,7 @@ namespace OC\Session;
 use OC\Authentication\Exceptions\InvalidTokenException;
 use OC\Authentication\Token\IProvider;
 use OCP\Session\Exceptions\SessionNotAvailableException;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Internal
@@ -49,12 +50,15 @@ class Internal extends Session {
 	 * @param string $name
 	 * @throws \Exception
 	 */
-	public function __construct(string $name) {
+	public function __construct(LoggerInterface $logger, string $name) {
 		set_error_handler([$this, 'trapError']);
 		$this->invoke('session_name', [$name]);
 		try {
 			$this->startSession();
 		} catch (\Exception $e) {
+			$logger->error('Could not start session: ' . $e->getMessage(), [
+				'exception' => $e,
+			]);
 			setcookie($this->invoke('session_name'), '', -1, \OC::$WEBROOT ?: '/');
 		}
 		restore_error_handler();

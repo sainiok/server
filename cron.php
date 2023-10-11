@@ -57,7 +57,7 @@ try {
 	\OC::$server->getSession()->close();
 
 	// initialize a dummy memory session
-	$session = new \OC\Session\Memory('');
+	$session = new \OC\Session\Memory();
 	$cryptoWrapper = \OC::$server->getSessionCryptoWrapper();
 	$session = $cryptoWrapper->wrapSession($session);
 	\OC::$server->setSession($session);
