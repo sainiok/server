@@ -16,11 +16,13 @@
 			:class="gridMode ? 'files-list__tbody--grid' : 'files-list__tbody--list'"
 			data-cy-files-list-tbody>
 			<component :is="dataComponent"
-				v-for="({key, item}, i) in renderedItems"
+				v-for="({key, item, index, top}, i) in renderedItems"
 				:key="key"
 				:visible="true"
 				:source="item"
-				:index="i"
+				:index="index"
+				:tabIndex="(index*10) + 1"
+				:style="{ transform: `translateY(${top}px)` }"
 				v-bind="extraProps" />
 		</tbody>
 
@@ -145,30 +147,31 @@ export default Vue.extend({
 			const oldItemsKeys = oldItems.map(item => item[this.dataKey] as string)
 			const unusedKeys = Object.keys(this.$_recycledPool).filter(key => !oldItemsKeys.includes(this.$_recycledPool[key]))
 
-			return items.map(item => {
-				const index = Object.values(this.$_recycledPool).indexOf(item[this.dataKey])
+			const pool = items.map((item, i) => {
+				const index = i + this.startIndex
+				const top = index * this.itemHeight
+
+				const poolIndex = Object.values(this.$_recycledPool).indexOf(item[this.dataKey])
 				// If defined, let's keep the key
-				if (index !== -1) {
-					return {
-						key: Object.keys(this.$_recycledPool)[index],
-						item,
-					}
+				if (poolIndex !== -1) {
+					const key = Object.keys(this.$_recycledPool)[poolIndex]
+					return { key, item, index, top }
 				}
 
 				// Get and consume reusable key or generate a new one
 				const key = unusedKeys.pop() || Math.random().toString(36).substr(2)
 				this.$_recycledPool[key] = item[this.dataKey]
-				return { key, item }
+				return { key, item, index, top }
 			})
+
+			// sort pool by key to retain DOM elements
+			pool.sort((a, b) => a.key.localeCompare(b.key))
+			return pool
 		},
 
 		tbodyStyle() {
-			const isOverScrolled = this.startIndex + this.rowCount > this.dataSources.length
-			const lastIndex = this.dataSources.length - this.startIndex - this.shownItems
-			const hiddenAfterItems = Math.floor(Math.min(this.dataSources.length - this.startIndex, lastIndex) / this.columnCount)
 			return {
-				paddingTop: `${Math.floor(this.startIndex / this.columnCount) * this.itemHeight}px`,
-				paddingBottom: isOverScrolled ? 0 : `${hiddenAfterItems * this.itemHeight}px`,
+				height: `${this.dataSources.length * this.itemHeight}px`,
 			}
 		},
 	},

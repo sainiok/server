@@ -323,6 +323,9 @@ export default Vue.extend({
 			/* Hover effect on tbody lines only */
 			tr {
 				contain: strict;
+				position: absolute;
+				top: 0;
+				left: 0;
 				&:hover,
 				&:focus {
 					background-color: var(--color-background-dark);
