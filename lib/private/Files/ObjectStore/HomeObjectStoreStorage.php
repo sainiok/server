@@ -26,6 +26,7 @@
  */
 namespace OC\Files\ObjectStore;
 
+use Exception;
 use OCP\Files\IHomeStorage;
 use OCP\IUser;
 
@@ -34,17 +35,19 @@ class HomeObjectStoreStorage extends ObjectStoreStorage implements IHomeStorage 
 
 	/**
 	 * The home user storage requires a user object to create a unique storage id
-	 * @param array $params
+	 *
+	 * @param array{user: IUser} $params
+	 * @throws Exception
 	 */
 	public function __construct($params) {
 		if (! isset($params['user']) || ! $params['user'] instanceof IUser) {
-			throw new \Exception('missing user object in parameters');
+			throw new Exception('missing user object in parameters');
 		}
 		$this->user = $params['user'];
 		parent::__construct($params);
 	}
 
-	public function getId() {
+	public function getId(): string {
 		return 'object::user:' . $this->user->getUID();
 	}
 
@@ -54,7 +57,7 @@ class HomeObjectStoreStorage extends ObjectStoreStorage implements IHomeStorage 
 	 * @param string $path The path to get the owner
 	 * @return false|string uid
 	 */
-	public function getOwner($path) {
+	public function getOwner($path): bool|string {
 		if (is_object($this->user)) {
 			return $this->user->getUID();
 		}
