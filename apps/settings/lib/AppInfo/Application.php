@@ -49,6 +49,7 @@ use OCA\Settings\Search\AppSearch;
 use OCA\Settings\Search\SectionSearch;
 use OCA\Settings\Search\UserSearch;
 use OCA\Settings\SetupChecks\CheckUserCertificates;
+use OCA\Settings\SetupChecks\CodeIntegrity;
 use OCA\Settings\SetupChecks\DefaultPhoneRegionSet;
 use OCA\Settings\SetupChecks\InternetConnectivity;
 use OCA\Settings\SetupChecks\LegacySSEKeyFormat;
@@ -148,6 +149,7 @@ class Application extends App implements IBootstrap {
 			);
 		});
 		$context->registerSetupCheck(CheckUserCertificates::class);
+		$context->registerSetupCheck(CodeIntegrity::class);
 		$context->registerSetupCheck(DefaultPhoneRegionSet::class);
 		$context->registerSetupCheck(InternetConnectivity::class);
 		$context->registerSetupCheck(LegacySSEKeyFormat::class);
