@@ -53,6 +53,8 @@ trait WebDav {
 	private $storedETAG = null;
 	/** @var int */
 	private $storedFileID = null;
+	/** @var string[] */
+	private $parts = [];
 
 	private string $s3MultipartDestination;
 	private string $uploadId;
@@ -448,28 +450,28 @@ trait WebDav {
 			</d:prop>
 			<d:literal>image/png</d:literal>
 		</d:eq>
-	
+
 		<d:eq>
 			<d:prop>
 				<d:getcontenttype/>
 			</d:prop>
 			<d:literal>image/jpeg</d:literal>
 		</d:eq>
-	
+
 		<d:eq>
 			<d:prop>
 				<d:getcontenttype/>
 			</d:prop>
 			<d:literal>image/heic</d:literal>
 		</d:eq>
-	
+
 		<d:eq>
 			<d:prop>
 				<d:getcontenttype/>
 			</d:prop>
 			<d:literal>video/mp4</d:literal>
 		</d:eq>
-	
+
 		<d:eq>
 			<d:prop>
 				<d:getcontenttype/>
