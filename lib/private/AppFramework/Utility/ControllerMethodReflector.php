@@ -54,21 +54,21 @@ class ControllerMethodReflector implements IControllerMethodReflector {
 		if ($docs !== false) {
 			// extract everything prefixed by @ and first letter uppercase
 			preg_match_all('/^\h+\*\h+@(?P<annotation>[A-Z]\w+)((?P<parameter>.*))?$/m', $docs, $matches);
-			foreach ($matches['annotation'] as $key => $annontation) {
-				$annontation = strtolower($annontation);
+			foreach ($matches['annotation'] as $key => $annotation) {
+				$annotation = strtolower($annotation);
 				$annotationValue = $matches['parameter'][$key];
-				if (isset($annotationValue[0]) && $annotationValue[0] === '(' && $annotationValue[\strlen($annotationValue) - 1] === ')') {
+				if (str_starts_with($annotationValue, '(') && str_ends_with($annotationValue, ')')) {
 					$cutString = substr($annotationValue, 1, -1);
 					$cutString = str_replace(' ', '', $cutString);
 					$splittedArray = explode(',', $cutString);
 					foreach ($splittedArray as $annotationValues) {
 						[$key, $value] = explode('=', $annotationValues);
-						$this->annotations[$annontation][$key] = $value;
+						$this->annotations[$annotation][$key] = $value;
 					}
 					continue;
 				}
 
-				$this->annotations[$annontation] = [$annotationValue];
+				$this->annotations[$annotation] = [$annotationValue];
 			}
 
 			// extract type parameter information
