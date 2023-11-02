@@ -218,5 +218,6 @@ Cypress.Commands.add('resetUserTheming', (user?: User) => {
 })
 
 Cypress.Commands.add('runOccCommand', (command: string, options?: Partial<Cypress.ExecOptions>) => {
-	return cy.exec(`docker exec --user www-data nextcloud-cypress-tests-server php ./occ ${command}`, options)
+	const container = (Cypress.config() as any).NEXTCLOUD_CONTAINER
+	return cy.exec(`docker exec --user www-data ${container} php ./occ ${command}`, options)
 })
