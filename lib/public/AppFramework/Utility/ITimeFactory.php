@@ -58,4 +58,12 @@ interface ITimeFactory extends ClockInterface {
 	 * @since 26.0.0
 	 */
 	public function withTimeZone(\DateTimeZone $timezone): static;
+
+	/**
+	 * @param string|null $timezone
+	 * @return \DateTimeZone
+	 * @throws \Exception
+	 * @since 28.0.0
+	 */
+	public function getTimezone(?string $timezone = null): \DateTimeZone;
 }
