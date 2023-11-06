@@ -75,7 +75,7 @@ class TimeFactory implements ITimeFactory {
 	}
 
 	public function getTimezone(?string $timezone = null): \DateTimeZone {
-		if($timezone !== null) {
+		if ($timezone !== null) {
 			return new \DateTimeZone($timezone);
 		}
 		return $this->timezone;
