@@ -26,52 +26,61 @@ declare(strict_types=1);
  */
 namespace OCA\Settings\Search;
 
+use OCP\Accounts\IAccountManager;
+use OCP\IGroupManager;
 use OCP\IL10N;
+use OCP\IURLGenerator;
 use OCP\IUser;
+use OCP\IUserManager;
 use OCP\Search\IProvider;
 use OCP\Search\ISearchQuery;
 use OCP\Search\SearchResult;
+use OCP\Search\SearchResultEntry;
 
 class UserSearch implements IProvider {
-
-
-	/** @var IL10N */
-	protected $l;
-
 	public function __construct(
-								IL10N $l) {
-		$this->l = $l;
+		private IL10N $l,
+		private IUserManager $userManager,
+		private IGroupManager $groupManager,
+		private IAccountManager $accountManager,
+		private IURLGenerator $urlGenerator,
+	) {
 	}
 
-	/**
-	 * @inheritDoc
-	 */
 	public function getId(): string {
 		return 'users';
 	}
 
-	/**
-	 * @inheritDoc
-	 */
 	public function getName(): string {
 		return $this->l->t('Users');
 	}
 
-	/**
-	 * @inheritDoc
-	 */
 	public function getOrder(string $route, array $routeParameters): int {
 		return 300;
 	}
 
-	/**
-	 * @inheritDoc
-	 */
-	public function search(IUser $user, ISearchQuery $query): SearchResult {
+	public function search(IUser $currentUser, ISearchQuery $query): SearchResult {
+		if (!$this->groupManager->isAdmin($currentUser->getUID())) {
+			return SearchResult::complete($this->getName(), []);
+		}
 
-		return SearchResult::complete(
-			$this->l->t('Users'),
-			[]
-		);
+		$users = $this->userManager->search($query->getTerm(), $query->getLimit(), 0);
+
+		$results = [];
+		foreach ($users as $user) {
+			$targetUserObject = $this->userManager->get($user->getUID());
+			if ($targetUserObject === null) {
+				continue;
+			}
+
+			$results[] = new SearchResultEntry(
+				'/avatar/'.$user->getUID().'/64',
+				$targetUserObject->getDisplayName(),
+				$user->getUID(),
+				$this->urlGenerator->linkToRouteAbsolute('settings.Users.usersList'),
+			);
+		}
+
+		return SearchResult::complete($this->getName(), $results);
 	}
 }
