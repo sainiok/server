@@ -204,6 +204,7 @@ class PredefinedStatusService {
 			IUserStatus::MESSAGE_AVAILABILITY,
 			IUserStatus::MESSAGE_CALENDAR_BUSY,
 			IUserStatus::MESSAGE_CALENDAR_BUSY_TENTATIVE,
+			IUserStatus::MESSAGE_OUT_OF_OFFICE,
 		], true);
 	}
 }
