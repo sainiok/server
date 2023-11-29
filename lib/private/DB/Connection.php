@@ -79,6 +79,7 @@ class Connection extends \Doctrine\DBAL\Connection {
 
 	/** @var DbDataCollector|null */
 	protected $dbDataCollector = null;
+	private int $lastConnectionCheck = 0;
 
 	/**
 	 * Initializes a new instance of the Connection class.
@@ -124,8 +125,11 @@ class Connection extends \Doctrine\DBAL\Connection {
 	public function connect() {
 		try {
 			if ($this->_conn) {
+				$this->reconnectIfNeeded();
 				return parent::connect();
 			}
+
+			$this->lastConnectionCheck = time();
 
 			// Only trigger the event logger for the initial connect call
 			$eventLogger = \OC::$server->getEventLogger();
@@ -599,6 +603,23 @@ class Connection extends \Doctrine\DBAL\Connection {
 			return new PostgreSqlMigrator($this, $config, $dispatcher);
 		} else {
 			return new Migrator($this, $config, $dispatcher);
+		}
+	}
+
+	private function reconnectIfNeeded(): void {
+		if ($this->lastConnectionCheck + 30 >= time()) {
+			return;
+		}
+
+		try {
+			$this->_conn->query($this->getDriver()->getDatabasePlatform()->getDummySelectSQL());
+			$this->lastConnectionCheck = time();
+		} catch (Exception\ConnectionLost $e) {
+			$this->logger->warning('Exception during connectivity check, closing and reconnecting', ['exception' => $e]);
+			$this->close();
+		} catch (\Exception $e) {
+			$this->logger->warning('Exception during connectivity check, closing and reconnecting', ['exception' => $e]);
+			$this->close();
 		}
 	}
 }
