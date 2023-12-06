@@ -6,8 +6,9 @@
  * @author Christoph Wurst <christoph@winzerhof-wurst.at>
  * @author Joas Schilling <coding@schilljs.com>
  * @author Lukas Reschke <lukas@statuscode.ch>
+ * @author Ferdinand Thiessen <opensource@fthiessen.de>
  *
- * @license GNU AGPL version 3 or any later version
+ * @license AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -28,57 +29,51 @@ namespace OCA\User_LDAP\Settings;
 use OCA\User_LDAP\Configuration;
 use OCA\User_LDAP\Helper;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Services\IInitialState;
 use OCP\IL10N;
+use OCP\IURLGenerator;
 use OCP\Settings\IDelegatedSettings;
-use OCP\Template;
+use OCP\Util;
 
 class Admin implements IDelegatedSettings {
-	/** @var IL10N */
-	private $l;
-
 	/**
 	 * @param IL10N $l
 	 */
-	public function __construct(IL10N $l) {
-		$this->l = $l;
+	public function __construct(
+		private string $appName,
+		private Helper $helper,
+		private IInitialState $initialState,
+		private IURLGenerator $url,
+	) {
 	}
 
 	/**
 	 * @return TemplateResponse
 	 */
 	public function getForm() {
-		$helper = new Helper(\OC::$server->getConfig(), \OC::$server->getDatabaseConnection());
-		$prefixes = $helper->getServerConfigurationPrefixes();
+		$prefixes = $this->helper->getServerConfigurationPrefixes();
 		if (count($prefixes) === 0) {
-			$newPrefix = $helper->getNextServerConfigurationPrefix();
+			$newPrefix = $this->helper->getNextServerConfigurationPrefix();
 			$config = new Configuration($newPrefix, false);
 			$config->setConfiguration($config->getDefaults());
 			$config->saveConfiguration();
-			$prefixes[] = $newPrefix;
+			$configurations[$newPrefix] = $config->getConfiguration();
+		} else {
+			$configurations = array_flip($prefixes);
+			$configurations = array_map(fn($idx) => (new Configuration($prefixes[$idx]))->getConfiguration(), $configurations);
 		}
 
-		$hosts = $helper->getServerConfigurationHosts();
-
-		$wControls = new Template('user_ldap', 'part.wizardcontrols');
-		$wControls = $wControls->fetchPage();
-		$sControls = new Template('user_ldap', 'part.settingcontrols');
-		$sControls = $sControls->fetchPage();
-
-		$parameters['serverConfigurationPrefixes'] = $prefixes;
-		$parameters['serverConfigurationHosts'] = $hosts;
-		$parameters['settingControls'] = $sControls;
-		$parameters['wizardControls'] = $wControls;
-
-		// assign default values
-		if (!isset($config)) {
-			$config = new Configuration('', false);
-		}
-		$defaults = $config->getDefaults();
-		foreach ($defaults as $key => $default) {
-			$parameters[$key.'_default'] = $default;
+		$mapping = Configuration::getConfigTranslationArray();
+		foreach(Configuration::getDefaults() as $key => $value) {
+			$defaults[$mapping[$key]] = $value;
 		}
 
-		return new TemplateResponse('user_ldap', 'settings', $parameters);
+		$this->initialState->provideInitialState('documentationURL', $this->url->linkToDocs('admin-ldap'));
+		$this->initialState->provideInitialState('serverConfigurations', $configurations);
+		$this->initialState->provideInitialState('serverConfigurationDefaults', $defaults);
+
+		Util::addScript($this->appName, 'admin-settings');
+		return new TemplateResponse($this->appName, 'settings-admin');
 	}
 
 	/**

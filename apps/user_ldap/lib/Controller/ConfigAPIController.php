@@ -29,7 +29,6 @@ use OC\Security\IdentityProof\Manager;
 use OCA\User_LDAP\Configuration;
 use OCA\User_LDAP\ConnectionFactory;
 use OCA\User_LDAP\Helper;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\OCS\OCSBadRequestException;
 use OCP\AppFramework\OCS\OCSException;

@@ -421,7 +421,7 @@ class Configuration {
 	 * @return array an associative array with the default values. Keys are correspond
 	 * to config-value entries in the database table
 	 */
-	public function getDefaults(): array {
+	public static function getDefaults(): array {
 		return [
 			'ldap_host' => '',
 			'ldap_port' => '',
@@ -498,7 +498,7 @@ class Configuration {
 	/**
 	 * @return array that maps internal variable names to database fields
 	 */
-	public function getConfigTranslationArray(): array {
+	public static function getConfigTranslationArray(): array {
 		//TODO: merge them into one representation
 		static $array = [
 			'ldap_host' => 'ldapHost',
