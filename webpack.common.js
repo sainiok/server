@@ -76,7 +76,23 @@ module.exports = {
 			},
 			{
 				test: /\.css$/,
-				use: ['style-loader', 'css-loader'],
+				oneOf: [
+					{
+						resourceQuery: /module/,
+						use: [
+							'vue-style-loader',
+							{
+								loader: 'css-loader',
+								options: {
+									modules: true,
+								},
+							},
+						],
+					},
+					{
+						use: ['style-loader', 'css-loader'],
+					},
+				],
 			},
 			{
 				test: /\.scss$/,

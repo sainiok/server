@@ -108,6 +108,9 @@ class Configuration {
 		'ldapConfigurationActive' => false,
 		'ldapAttributesForUserSearch' => null,
 		'ldapAttributesForGroupSearch' => null,
+		/**
+		 * Only for the UI: Enable advanced settings
+		 */
 		'ldapExperiencedAdmin' => false,
 		'homeFolderNamingRule' => null,
 		'hasMemberOfFilterSupport' => false,
