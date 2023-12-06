@@ -19,7 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-import { sanitizeSVG } from '@skjnldsv/sanitize-svg'
+import dompurify from 'dompurify'
 
 export default class Tab {
 
@@ -97,10 +97,7 @@ export default class Tab {
 		this._scrollBottomReached = scrollBottomReached
 
 		if (typeof iconSvg === 'string') {
-			sanitizeSVG(iconSvg)
-				.then(sanitizedSvg => {
-					this._iconSvgSanitized = sanitizedSvg
-				})
+			this._iconSvgSanitized = dompurify.sanitize(iconSvg)
 		}
 
 	}
