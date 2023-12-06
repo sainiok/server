@@ -1,6 +1,5 @@
 <template>
-	<SubSection :name="t('user_ldap', 'Advanced settings')">
-		Hello
+	<SubSection :name="t('user_ldap', 'LDAP users settings')">
 	</SubSection>
 </template>
 <script setup lang="ts">

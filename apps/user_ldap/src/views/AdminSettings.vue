@@ -1,5 +1,8 @@
 <template>
-	<NcSettingsSection :name="t('user_ldap', 'LDAP/AD settings')" :doc-url="ldapDocumentation || undefined" :limit-width="true">
+	<NcSettingsSection :name="t('user_ldap', 'LDAP/AD settings')"
+		:description="t('user_ldap', 'Select a LDAP server to edit or add a new one.')"
+		:doc-url="ldapDocumentation || undefined"
+		:limit-width="true">
 		<div :class="$style.wrapper">
 			<label :class="$style['select-label']" :for="serverSelectId">{{ t('user_ldap', 'LDAP server configuration') }}</label>
 			<NcSelect v-model="selectedConfiguration"
@@ -7,10 +10,13 @@
 				:clearable="false"
 				:input-id="serverSelectId"
 				:options="options" />
+			<NcButton type="tertiary-no-background" @click="onReloadStatus">
+				<template #icon>
+					<NcIconSvgWrapper :class="statusIconClass" :path="statusIconPath" />
+				</template>
+				{{ statusText }}
+			</NcButton>
 		</div>
-		<p :class="$style.hint">
-			{{ t('user_ldap', 'Select a LDAP server to edit or add a new one.') }}
-		</p>
 
 		<div :class="$style.actions">
 			<NcButton v-if="options.length > 1" type="error" @click="onDelete">
@@ -28,22 +34,34 @@
 		</div>
 
 		<ConnectionSettings />
-		<AdvancedServerSettings />
+		<DirectorySettings />
 	</NcSettingsSection>
 </template>
 <script setup lang="ts">
+import { mdiCheck, mdiAlertCircle } from '@mdi/js'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
-import { NcButton, NcSelect, NcSettingsSection } from '@nextcloud/vue'
-import { computed, ref, watch } from 'vue'
+import { NcButton, NcSelect, NcSettingsSection, NcIconSvgWrapper } from '@nextcloud/vue'
+import { computed, ref, watch, useCssModule } from 'vue'
 import { useConfigStore } from '../store/configStore'
 
 import debounce from 'debounce'
 import ConnectionSettings from './ConnectionSettings.vue'
-import AdvancedServerSettings from './AdvancedServerSettings.vue'
+import DirectorySettings from './DirectorySettings.vue'
+
+const styles = useCssModule()
 
 const configStore = useConfigStore()
+
+/**
+ * Configuration status
+ */
+const configStatus = ref(false)
+const statusIconPath = computed(() => configStatus.value ? mdiCheck : mdiAlertCircle)
+const statusIconClass = computed(() => configStatus.value ? styles['icon-success'] : styles['icon-error'])
+const statusText = computed(() => configStatus.value ? t('user_ldap', 'Configuration ok') : t('user_ldap', 'Configuration incomplete'))
+const onReloadStatus = () => { configStatus.value = !configStatus.value }
 
 /**
  * URL to the documentation for the LDAP settings
@@ -92,6 +110,8 @@ configStore.$subscribe(() => {
 const onReset = async () => {
 	try {
 		await configStore.reset(selectedConfiguration.value.id)
+		// reset the current option as the host name is removed (just changes the option name)
+		selectedConfiguration.value = options.value.find(({ id }) => id === configStore.currentId)!
 		showSuccess(t('user_ldap', 'Resetted LDAP configuration to default values'))
 	} catch (e) {
 		showError(t('user_ldap', 'Could not reset LDAP configuration'))
@@ -140,12 +160,28 @@ const onDelete = async () => {
 
 <style module>
 .wrapper {
+	/* Make selector sticky to the top */
+	position: sticky;
+	top: 0px;
+	background-color: var(--color-main-background);
+	z-index: 999; /* Ensure it is always on top */
+	padding-block: 22px;
+
 	display: flex;
 	flex-wrap: wrap;
 	gap: 16px;
 	justify-content: start;
 	align-items: center;
 }
+
+.icon-error {
+	color: var(--color-error);
+}
+
+.icon-success {
+	color: var(--color-success);
+}
+
 .select-label {
 	display: block;
 	flex: 0 0 fit-content;
