@@ -90,7 +90,7 @@ if (\OC::$server->getConfig()->getSystemValue('installed', false)) {
 	$application->add(new OC\Core\Command\Background\Cron(\OC::$server->getConfig()));
 	$application->add(new OC\Core\Command\Background\WebCron(\OC::$server->getConfig()));
 	$application->add(new OC\Core\Command\Background\Ajax(\OC::$server->getConfig()));
-	$application->add(new OC\Core\Command\Background\Job(\OC::$server->getJobList(), \OC::$server->get(LoggerInterface::class)));
+	$application->add(new OC\Core\Command\Background\Job(\OC::$server->get(\OCP\BackgroundJob\IJobList::class), \OC::$server->get(LoggerInterface::class)));
 	$application->add(\OCP\Server::get(OC\Core\Command\Background\JobWorker::class));
 	$application->add(new OC\Core\Command\Background\ListCommand(\OC::$server->getJobList()));
 

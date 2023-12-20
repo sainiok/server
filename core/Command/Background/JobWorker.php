@@ -27,6 +27,7 @@ namespace OC\Core\Command\Background;
 
 use OC\Core\Command\InterruptedException;
 use OCP\BackgroundJob\IJobList;
+use OCP\ITempManager;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -105,7 +106,7 @@ class JobWorker extends JobBase {
 
 			// clean up after unclean jobs
 			\OC_Util::tearDownFS();
-			\OC::$server->getTempManager()->clean();
+			\OC::$server->get(ITempManager::class)->clean();
 
 			$this->jobList->setLastJob($job);
 			$this->jobList->unlockJob($job);
