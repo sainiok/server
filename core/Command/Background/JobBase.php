@@ -45,6 +45,10 @@ abstract class JobBase extends \OC\Core\Command\Base {
 	protected function printJobInfo(int $jobId, IJob $job, OutputInterface $output): void {
 		$row = $this->jobList->getDetailsById($jobId);
 
+		if ($row === null) {
+			return;
+		}
+
 		$lastRun = new \DateTime();
 		$lastRun->setTimestamp((int) $row['last_run']);
 		$lastChecked = new \DateTime();
@@ -81,7 +85,7 @@ abstract class JobBase extends \OC\Core\Command\Base {
 			$interval = $intervalProperty->getValue($job);
 
 			$nextRun = new \DateTime();
-			$nextRun->setTimestamp($row['last_run'] + $interval);
+			$nextRun->setTimestamp((int)$row['last_run'] + $interval);
 
 			if ($nextRun > new \DateTime()) {
 				$output->writeln('Next execution:       <comment>' . $nextRun->format(\DateTimeInterface::ATOM) . '</comment>');

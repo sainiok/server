@@ -102,7 +102,7 @@ class JobWorker extends JobBase {
 				$this->printJobInfo($job->getId(), $job, $output);
 			}
 
-			$job->execute($this->jobList, \OC::$server->getLogger());
+			$job->start($this->jobList);
 
 			// clean up after unclean jobs
 			\OC_Util::tearDownFS();

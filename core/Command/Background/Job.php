@@ -82,7 +82,7 @@ class Job extends JobBase {
 			$output->writeln('<error>Something went wrong when trying to retrieve Job with ID ' . $jobId . ' from database</error>');
 			return 1;
 		}
-		$job->execute($this->jobList, \OC::$server->getLogger());
+		$job->start($this->jobList);
 		$job = $this->jobList->getById($jobId);
 
 		if (($job === null) || ($lastRun !== $job->getLastRun())) {
