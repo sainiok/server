@@ -52,7 +52,7 @@ export default {
 				{
 					label: t('files', 'Choose'),
 					type: 'primary',
-					callback: (node) => this.submit(node.fileid),
+					callback: (nodes) => { console.warn('got', nodes); this.submit(nodes[0].fileid) },
 				},
 			],
 		}
