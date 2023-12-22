@@ -494,6 +494,7 @@ export default {
 						this.$refs.tabs.updateTabs()
 					}
 					this.setActiveTab(this.Sidebar.activeTab || this.tabs[0].id)
+					this.$refs.sidebar.$el.focus()
 				})
 			} catch (error) {
 				this.error = t('files', 'Error while loading the file data')
