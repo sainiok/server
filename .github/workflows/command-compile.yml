@@ -54,13 +54,13 @@ jobs:
 
     steps:
       - name: Restore cached git repository
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+        uses: buildjet/cache@e376f15c6ec6dc595375c78633174c7e5f92dc0e # v3
         with:
           path: .git
           key: git-repo
 
       - name: Checkout ${{ needs.init.outputs.head_ref }}
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v3.6.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           token: ${{ secrets.COMMAND_BOT_PAT }}
           fetch-depth: 0
@@ -79,7 +79,7 @@ jobs:
           fallbackNpm: '^9'
 
       - name: Set up node ${{ steps.package-engines-versions.outputs.nodeVersion }}
-        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4.0.0
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v3
         with:
           node-version: ${{ steps.package-engines-versions.outputs.nodeVersion }}
           cache: npm
