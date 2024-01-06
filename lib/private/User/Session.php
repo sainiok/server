@@ -858,6 +858,13 @@ class Session implements IUserSession, Emitter {
 			return false;
 		}
 
+		// Check if the request had sent a cookie with the instance id as name
+		// If there is no cookie, this is a new session
+		$instanceId = $this->config->getSystemValueString('instanceid');
+		if (is_null($request->getCookie($instanceId))) {
+			return false;
+		}
+
 		try {
 			$dbToken = $this->tokenProvider->getToken($token);
 		} catch (InvalidTokenException $e) {
