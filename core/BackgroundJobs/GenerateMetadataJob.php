@@ -111,10 +111,14 @@ class GenerateMetadataJob extends TimedJob {
 			}
 
 			try {
-				$this->filesMetadataManager->refreshMetadata(
-					$node,
-					IFilesMetadataManager::PROCESS_LIVE | IFilesMetadataManager::PROCESS_BACKGROUND
-				);
+				try {
+					$this->filesMetadataManager->getMetadata($node->getId());
+				} catch (\OCP\FilesMetadata\Exceptions\FilesMetadataNotFoundException) {
+					$this->filesMetadataManager->refreshMetadata(
+						$node,
+						IFilesMetadataManager::PROCESS_LIVE | IFilesMetadataManager::PROCESS_BACKGROUND
+					);
+				}
 			} catch (\Throwable $ex) {
 				$this->logger->warning("Error while generating metadata for fileid ".$node->getId(), ['exception' => $ex]);
 			}
