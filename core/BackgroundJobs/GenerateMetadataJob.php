@@ -98,6 +98,12 @@ class GenerateMetadataJob extends TimedJob {
 			return;
 		}
 
+		// Do not scan system mount points. Ex: external storages
+		$scanSystemMountPoints = $this->config->getSystemValueBool('scanMetadataInSystemMountPointsInBackground', false);
+		if (!$scanSystemMountPoints && $folder->getMountPoint() instanceof \OCP\Files\Mount\ISystemMountPoint) {
+			return;
+		}
+
 		foreach ($folder->getDirectoryListing() as $node) {
 			if ($node instanceof Folder) {
 				$this->scanFolder($node);
