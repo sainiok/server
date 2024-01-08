@@ -236,6 +236,15 @@ export default {
 						outline: none !important;
 					}
 
+					&:focus-visible:active,
+					&.active:focus-visible {
+						color: var(--color-main-text);
+						img,
+						svg {
+							filter: none;
+						}
+					}
+
 					&:active,
 					&.active {
 						background-color: var(--color-primary-element);
